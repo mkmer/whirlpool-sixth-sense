@@ -107,7 +107,11 @@ class Appliance:
             async with async_timeout.timeout(30):
                 async with self._session.get(uri, headers=self._create_headers()) as r:
                     if r.status == 200:
-                        self._data_dict = json.loads(await r.text())
+                        new_dict = json.loads(await r.text())
+                        if new_dict.get(ATTR_ONLINE) == SETVAL_VALUE_ON and new_dict.get(ATTR_ONLINE) != self._data_dict.get(ATTR_ONLINE):
+                            await self.stop_event_listener()
+                            await self.start_event_listener()
+                        self._data_dict = new_dict
                         for callback in self._attr_changed:
                             callback()
                         return True
